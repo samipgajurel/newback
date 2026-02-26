@@ -187,3 +187,12 @@ FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "http://localhost:8080")
 OFFICE_LAT = float(os.getenv("OFFICE_LAT", "0"))
 OFFICE_LNG = float(os.getenv("OFFICE_LNG", "0"))
 OFFICE_RADIUS_M = int(os.getenv("OFFICE_RADIUS_M", "100"))
+
+CSRF_TRUSTED_ORIGINS = [
+    o.strip()
+    for o in os.getenv(
+        "CSRF_TRUSTED_ORIGINS",
+        "http://localhost:8080,http://127.0.0.1:8080",
+    ).split(",")
+    if o.strip()
+]
