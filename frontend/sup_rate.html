@@ -1,0 +1,163 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Supervisor - Rate Task</title>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- REQUIRED for navbar.js -->
+  <div id="navbar"></div>
+
+  <div class="content">
+    <div class="tile">
+      <h2>Give Progress Rating</h2>
+      <p class="help">Click stars to rate intern work.</p>
+
+      <div id="msg" class="msg"></div>
+      <div class="hr"></div>
+
+      <form id="rateForm" class="form">
+
+        <div class="field">
+          <label>Select Task</label>
+          <select id="taskSelect"></select>
+        </div>
+
+        <!-- ⭐ STAR UI -->
+        <div class="field">
+          <label>Stars</label>
+          <div id="starsUI">
+            <button type="button" class="starBtn" data-v="1">★</button>
+            <button type="button" class="starBtn" data-v="2">★</button>
+            <button type="button" class="starBtn" data-v="3">★</button>
+            <button type="button" class="starBtn" data-v="4">★</button>
+            <button type="button" class="starBtn" data-v="5">★</button>
+          </div>
+
+          <span class="badge" id="starsText">5 / 5</span>
+
+          <!-- hidden numeric -->
+          <input id="stars" type="number" hidden value="5"/>
+        </div>
+
+        <div class="field">
+          <label>Feedback</label>
+          <textarea id="feedback" rows="4"></textarea>
+        </div>
+
+        <button class="btn" type="submit">Submit Rating</button>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/navbar.js"></script>
+
+<script>
+initTheme();
+renderNavbar();
+
+const user = requireAuthOrRedirect();
+if(user.role !== "SUPERVISOR") window.location.href="dashboard.html";
+
+const taskSelect=document.getElementById("taskSelect");
+const starsInput=document.getElementById("stars");
+const starsText=document.getElementById("starsText");
+const feedback=document.getElementById("feedback");
+const msg=document.getElementById("msg");
+const starBtns=[...document.querySelectorAll(".starBtn")];
+
+let tasks=[];
+let locked=false;
+
+function showMsg(t,type="ok"){
+  msg.className="msg show "+(type==="ok"?"ok":"err");
+  msg.textContent=t;
+}
+
+function setStars(v){
+  starsInput.value=v;
+  starsText.textContent=`${v} / 5`;
+
+  starBtns.forEach(b=>{
+    b.classList.toggle("active",Number(b.dataset.v)<=v);
+  });
+}
+
+starBtns.forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    if(locked) return;
+    setStars(Number(btn.dataset.v));
+  });
+});
+
+async function loadTasks(){
+  const res=await apiFetch("/internships/supervisor/tasks/",{method:"GET"});
+  const data=await res.json().catch(()=>[]);
+
+  tasks=data;
+
+  taskSelect.innerHTML=data.map(t=>
+    `<option value="${t.id}">#${t.id} - ${t.title}</option>`
+  ).join("");
+
+  applyLock();
+}
+
+function applyLock(){
+  const id=taskSelect.value;
+  const t=tasks.find(x=>String(x.id)===String(id));
+
+  if(t?.star_rating){
+    locked=true;
+    setStars(t.star_rating);
+    feedback.value=t.supervisor_feedback||"";
+    starBtns.forEach(b=>b.disabled=true);
+    feedback.disabled=true;
+    showMsg("This task is already rated and locked.","err");
+  }else{
+    locked=false;
+    starBtns.forEach(b=>b.disabled=false);
+    feedback.disabled=false;
+  }
+}
+
+taskSelect.addEventListener("change",applyLock);
+
+document.getElementById("rateForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  if(locked) return;
+
+  const id=taskSelect.value;
+
+  const res=await apiFetch(`/internships/supervisor/tasks/${id}/rate/`,{
+    method:"POST",
+    body:JSON.stringify({
+      star_rating:Number(starsInput.value),
+      supervisor_feedback:feedback.value.trim()
+    })
+  });
+
+  if(res.ok){
+    showMsg("Saved ✔");
+    await loadTasks();
+  }else{
+    showMsg("Failed","err");
+  }
+});
+
+setStars(5);
+loadTasks();
+</script>
+
+</body>
+</html>
