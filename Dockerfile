@@ -6,18 +6,16 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
+    build-essential default-libmysqlclient-dev pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# ✅ Copy everything first (avoids missing file due to context/path config)
 COPY . /app
 
-# ✅ Install deps from the copied file
-RUN pip install --no-cache-dir -r /app/backend/requirements.txt
+RUN pip install --upgrade pip \
+    && pip install -r /app/backend/requirements.txt
 
 RUN chmod +x /app/start.sh
 
 WORKDIR /app/backend
 
-EXPOSE 8000
 CMD ["bash", "/app/start.sh"]

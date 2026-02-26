@@ -1,9 +1,20 @@
 #!/usr/bin/env bash
 set -e
 
+echo "⏳ Waiting for MySQL..."
+sleep 10
+
 cd /app/backend
 
+echo "📦 Running migrations..."
 python manage.py migrate --noinput
+
+echo "📁 Collecting static..."
 python manage.py collectstatic --noinput
 
-exec gunicorn backend.wsgi:application --bind 0.0.0.0:${PORT:-8000}
+echo "🚀 Starting Gunicorn..."
+exec gunicorn backend.wsgi:application \
+  --bind 0.0.0.0:8000 \
+  --workers 2 \
+  --threads 4 \
+  --timeout 120
