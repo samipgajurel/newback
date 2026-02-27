@@ -196,3 +196,7 @@ CSRF_TRUSTED_ORIGINS = [
     ).split(",")
     if o.strip()
 ]
+
+ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "").split(",") if h.strip()]
+if not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]

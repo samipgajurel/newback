@@ -1,172 +1,112 @@
-// // frontend/js/auth.js
-// // Session + auth helpers + password helpers (FULL FIXED FILE)
+// frontend/js/auth.js
+// ✅ Uses apiFetch (so it always hits /api/* via nginx)
+// ✅ Provides session helpers + global login() for pages using onclick
 
-// (function () {
-//   "use strict";
+(function () {
+  "use strict";
 
-//   // -------------------- Session helpers --------------------
-
-//   function getUser() {
-//     const u = localStorage.getItem("user");
-//     try {
-//       return u ? JSON.parse(u) : null;
-//     } catch {
-//       return null;
-//     }
-//   }
-
-//   /**
-//    * Save session pieces:
-//    * setSession({ access, refresh, user })
-//    * Any field can be omitted.
-//    */
-//   function setSession({ access, refresh, user } = {}) {
-//     if (access) localStorage.setItem("access", access);
-//     if (refresh) localStorage.setItem("refresh", refresh);
-//     if (user) localStorage.setItem("user", JSON.stringify(user));
-//   }
-
-//   /**
-//    * Require logged-in session (access token + user object).
-//    * Redirects to login.html if missing.
-//    */
-//   function requireAuthOrRedirect() {
-//     const access = localStorage.getItem("access");
-//     const user = getUser();
-
-//     if (!access || !user) {
-//       window.location.href = "login.html";
-//       return null;
-//     }
-//     return user;
-//   }
-
-//   /**
-//    * Require a specific role ("ADMIN" | "SUPERVISOR" | "INTERN").
-//    * Redirects to dashboard.html if role mismatch.
-//    */
-//   function requireRole(role) {
-//     const user = requireAuthOrRedirect();
-//     if (!user) return null;
-
-//     if ((user.role || "").toUpperCase() !== String(role).toUpperCase()) {
-//       alert("Access denied: insufficient permissions.");
-//       window.location.href = "dashboard.html";
-//       return null;
-//     }
-//     return user;
-//   }
-
-//   function logout() {
-//     localStorage.removeItem("access");
-//     localStorage.removeItem("refresh");
-//     localStorage.removeItem("user");
-//     window.location.href = "login.html";
-//   }
-
-//   // -------------------- UI message helpers --------------------
-
-//   function showMsg(el, text, type = "") {
-//     if (!el) return;
-//     el.className = "msg show" + (type ? " " + type : "");
-//     el.textContent = text;
-//   }
-
-//   function hideMsg(el) {
-//     if (!el) return;
-//     el.className = "msg";
-//     el.textContent = "";
-//   }
-
-//   // -------------------- Password helpers (FIX for Show button + meter) --------------------
-
-//   function togglePassword(inputId, buttonId) {
-//     const input = document.getElementById(inputId);
-//     const btn = document.getElementById(buttonId);
-
-//     if (!input || !btn) {
-//       console.warn("togglePassword(): missing element", { inputId, buttonId });
-//       return;
-//     }
-
-//     btn.addEventListener("click", () => {
-//       const isHidden = input.type === "password";
-//       input.type = isHidden ? "text" : "password";
-//       btn.textContent = isHidden ? "Hide" : "Show";
-//     });
-//   }
-
-//   function passwordChecks(pw) {
-//     const s = String(pw || "");
-//     return {
-//       len: s.length >= 8,
-//       upper: /[A-Z]/.test(s),
-//       num: /[0-9]/.test(s),
-//       special: /[^A-Za-z0-9]/.test(s),
-//     };
-//   }
-
-//   function passwordStrong(pw) {
-//     const c = passwordChecks(pw);
-//     return c.len && c.upper && c.num && c.special;
-//   }
-
-//   // -------------------- Export globals (so inline scripts can call them) --------------------
-
-//   window.getUser = getUser;
-//   window.setSession = setSession;
-//   window.requireAuthOrRedirect = requireAuthOrRedirect;
-//   window.requireRole = requireRole;
-//   window.logout = logout;
-
-//   window.showMsg = showMsg;
-//   window.hideMsg = hideMsg;
-
-//   window.togglePassword = togglePassword;
-//   window.passwordChecks = passwordChecks;
-//   window.passwordStrong = passwordStrong;
-// })();
-
-
-window.login = async function () {
-  const emailEl = document.getElementById("email");
-  const passEl  = document.getElementById("password");
-
-  const email = (emailEl?.value || "").trim();
-  const password = passEl?.value || "";
-
-  if (!email || !password) {
-    alert("Email र password चाहिन्छ");
-    return;
+  function getUser() {
+    const u = localStorage.getItem("user");
+    try {
+      return u ? JSON.parse(u) : null;
+    } catch {
+      return null;
+    }
   }
 
-  try {
-    const url = `${window.API_BASE}/auth/login/`; // <-- तिम्रो backend endpoint यही हो भन्ने मान्दै
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ email, password }),
-    });
+  function setSession({ access, refresh, user } = {}) {
+    if (access) localStorage.setItem("access", access);
+    if (refresh) localStorage.setItem("refresh", refresh);
+    if (user) localStorage.setItem("user", JSON.stringify(user));
+  }
 
-    const text = await res.text();
-    let data = {};
-    try { data = JSON.parse(text); } catch {}
+  function requireAuthOrRedirect() {
+    const access = localStorage.getItem("access");
+    const user = getUser();
+    if (!access || !user) {
+      window.location.href = "login.html";
+      return null;
+    }
+    return user;
+  }
 
-    if (!res.ok) {
-      console.error("Login failed:", res.status, text);
-      alert(`Login failed (${res.status})`);
+  function requireRole(role) {
+    const user = requireAuthOrRedirect();
+    if (!user) return null;
+
+    if ((user.role || "").toUpperCase() !== String(role).toUpperCase()) {
+      alert("Access denied: insufficient permissions.");
+      window.location.href = "dashboard.html";
+      return null;
+    }
+    return user;
+  }
+
+  function logout() {
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+    localStorage.removeItem("user");
+    window.location.href = "login.html";
+  }
+
+  // expose helpers
+  window.getUser = getUser;
+  window.setSession = setSession;
+  window.requireAuthOrRedirect = requireAuthOrRedirect;
+  window.requireRole = requireRole;
+  window.logout = logout;
+
+  // ✅ global login() for pages using onclick="login()"
+  window.login = async function () {
+    const emailEl = document.getElementById("email");
+    const passEl = document.getElementById("password");
+
+    const email = (emailEl?.value || "").trim().toLowerCase();
+    const password = passEl?.value || "";
+
+    if (!email || !password) {
+      alert("Email र password चाहिन्छ");
       return;
     }
 
-    // save tokens if present
-    if (data.access) localStorage.setItem("access", data.access);
-    if (data.refresh) localStorage.setItem("refresh", data.refresh);
+    try {
+      // ✅ correct JWT token endpoint (as per your login.html)
+      const res = await window.apiFetch("/token/", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      });
 
-    // redirect
-    window.location.assign("dashboard.html");
-  } catch (err) {
-    console.error(err);
-    alert("Network error");
-  }
-};
+      const text = await res.text();
+      let data = {};
+      try { data = text ? JSON.parse(text) : {}; } catch {}
+
+      if (!res.ok) {
+        console.error("Login failed:", res.status, text);
+        alert(data.detail || `Login failed (${res.status})`);
+        return;
+      }
+
+      // Save tokens
+      setSession({ access: data.access, refresh: data.refresh });
+
+      // fetch profile
+      const meRes = await window.apiFetch("/accounts/me/", { method: "GET" });
+      const meText = await meRes.text();
+      let me = {};
+      try { me = meText ? JSON.parse(meText) : {}; } catch {}
+
+      if (!meRes.ok) {
+        alert(me.detail || "Logged in but failed to fetch profile");
+        return;
+      }
+
+      setSession({ user: me });
+
+      // redirect
+      window.location.assign("dashboard.html");
+    } catch (err) {
+      console.error(err);
+      alert("Network error");
+    }
+  };
+})();

@@ -41,6 +41,49 @@
   <script src="js/auth.js"></script>
   <script src="js/navbar.js"></script>
 
+  <!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Codavatar InternTrack - Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app">
+    <div id="navbar"></div>
+
+    <div class="content">
+      <div class="grid">
+        <div class="tile half">
+          <h2>Welcome</h2>
+          <p id="who"></p>
+          <div class="kpis" id="kpis"></div>
+        </div>
+
+        <div class="tile half">
+          <h2>Quick Actions</h2>
+          <p id="hint" class="help"></p>
+          <div class="kpis" id="actions"></div>
+        </div>
+
+        <div class="tile">
+          <div class="row">
+            <h2 style="margin:0">System Status</h2>
+            <button class="btn-inline" id="refreshBtn" type="button">Refresh</button>
+          </div>
+          <div id="msg" class="msg"></div>
+          <div class="help" id="statusText">Loading…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/navbar.js"></script>
+
   <script>
     initTheme();
 
@@ -191,5 +234,8 @@
     document.getElementById("refreshBtn").addEventListener("click", loadDashboard);
     loadDashboard();
   </script>
+</body>
+</html>
+
 </body>
 </html>

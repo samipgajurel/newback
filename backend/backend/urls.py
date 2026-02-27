@@ -14,18 +14,29 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+"""
+URL configuration for backend project.
+"""
 from django.contrib import admin
 from django.urls import path, include
+from django.http import JsonResponse
 from rest_framework_simplejwt.views import TokenRefreshView
 from accounts.views import VerifiedTokenObtainPairView
+
+def health(request):
+    return JsonResponse({"ok": True})
 
 urlpatterns = [
     path("admin/", admin.site.urls),
 
-    # JWT
-    path("api/token/", VerifiedTokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    # health for docker-compose healthcheck
+    path("health/", health),
 
-    path("api/accounts/", include("accounts.urls")),
-    path("api/internships/", include("internships.urls")),
+    # JWT
+    path("token/", VerifiedTokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+
+    # apps
+    path("accounts/", include("accounts.urls")),
+    path("internships/", include("internships.urls")),
 ]
