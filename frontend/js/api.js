@@ -1,6 +1,6 @@
 // frontend/js/api.js
 
-const API_BASE = (window.API_BASE || "http://127.0.0.1:8000/api").replace(/\/+$/,"");
+const API_BASE = (window.API_BASE || "http://127.0.0.1:8080/api").replace(/\/+$/,"");
 
 function apiUrl(path){
   if(!path.startsWith("/")) path = "/" + path;
