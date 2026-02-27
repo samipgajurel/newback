@@ -70,7 +70,7 @@
 
     try {
       // IMPORTANT: Your backend is mounted at /api/token/
-      // Your apiFetch already prepends API_BASE ("http://127.0.0.1:8000/api")
+      // Your apiFetch already prepends API_BASE ("http://127.0.0.1:8080/api")
       const tokenRes = await apiFetch("/token/", {
         method: "POST",
         body: JSON.stringify({ email, password }),
